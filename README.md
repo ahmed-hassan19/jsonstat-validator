@@ -22,14 +22,15 @@ pip install jsonstat-validator
 import json
 from jsonstat_validator import validate_jsonstat
 
-# Load your JSON-stat data
-with open("data.json", "r") as f:
-    data = json.load(f)
+# Load or define your JSON-stat object
+# You can start by using one of the provided sample files
+with open("jsonstat_validator/tests/samples/oecd.json", "r") as f:
+    jsonstat_obj = json.load(f)
 
 # Validate the data
 try:
-    result = validate_jsonstat(data)
-    print("Validation successful!")
+    validate_jsonstat(data)
+    print("Valid JSON-stat object!")
 except ValueError as e:
     print(f"Validation failed: {e}")
 ```
