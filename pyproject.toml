@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsonstat-validator"
+version = "0.1.0"
+description = "A validator for JSON-stat 2.0 format data"
+readme = "README.md"
+authors = [
+    {name = "Ahmed Hassan", email = "ahmedhassan.ahmed@fao.org"},
+]
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+]
+keywords = ["json-stat", "validator", "statistics", "data", "json"]
+requires-python = ">=3.8"
+dependencies = [
+    "pydantic>=2.0.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.1",
+    "build>=1.0.0",
+    "twine>=4.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ahmed-hassan19/jsonstat-validator"
+"Bug Tracker" = "https://github.com/ahmed-hassan19/jsonstat-validator/issues"
+"Documentation" = "https://github.com/ahmed-hassan19/jsonstat-validator#readme"
+
+[tool.setuptools]
+packages = ["jsonstat_validator"]
+
+[tool.pytest.ini_options]
+markers = [
+    "samples: marks tests that use JSON-stat sample files",
+] 

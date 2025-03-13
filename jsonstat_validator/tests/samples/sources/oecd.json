@@ -1,0 +1,16 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/sources/oecd.json",
+	"label" : "Source: OECD",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/oecd.json",
+				"label" : "Unemployment rate in the OECD countries 2003-2014"
+			}
+		]
+	}
+}

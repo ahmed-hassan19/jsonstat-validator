@@ -1,0 +1,16 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/sources/statcan.json",
+	"label" : "Source: Statistics Canada",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/canada.json",
+				"label" : "Population by sex and age group. Canada. 2012"
+			}
+		]
+	}
+}
