@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jsonstat-validator"
 version = "0.1.0"
-description = "A validator for JSON-stat 2.0 format data"
+description = "A Python validator for the JSON-stat 2.0 standard format, based on Pydantic."
 readme = "README.md"
 authors = [
     {name = "Ahmed Hassan", email = "ahmedhassan.ahmed@fao.org"},
@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Quality Assurance",
 ]
-keywords = ["json-stat", "validator", "statistics", "data", "json"]
+keywords = ["json-stat", "validator", "json", "data-engineering", "pydantic", "python", "fao"]
 requires-python = ">=3.8"
 dependencies = [
     "pydantic>=2.0.0,<3.0.0",

@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/jsonstat-validator.svg)](https://pypi.org/project/jsonstat-validator/)
 [![License](https://img.shields.io/github/license/ahmed-hassan19/jsonstat-validator.svg)](https://github.com/ahmed-hassan19/jsonstat-validator/blob/main/LICENSE)
 
-A Python validator for the JSON-stat 2.0 format, based on Pydantic models.
+A Python validator for the JSON-stat 2.0 standard format, based on Pydantic.
 
 JSON-stat is a simple lightweight format for data interchange. It is a JSON format for data dissemination that allows the representation of statistical data in a way that is both simple and convenient for data processing. With this validator, you can ensure your data conforms to the official [JSON-stat 2.0 specification](https://json-stat.org/full/).
 
@@ -95,7 +95,6 @@ Here's a simplified example of a JSON-stat dataset representing unemployment dat
 - Provides models for all major JSON-stat responses: **Dataset**, **Dimension**, **Collection**.
 - Built on Pydantic for robust type validation and error messages.
 - Provides tests against the [official JSON-stat samples](https://json-stat.org/samples/collection.json) as well as custom fine-grained tests.
-
 
 ## Testing
 
