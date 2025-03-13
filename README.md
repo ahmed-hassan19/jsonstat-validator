@@ -1,6 +1,6 @@
 # JSON-stat Validator
 
-[![PyPI version](https://badge.fury.io/py/jsonstat-validator.svg)](https://badge.fury.io/py/jsonstat-validator)
+[![PyPI version](https://img.shields.io/pypi/v/jsonstat-validator.svg)](https://pypi.org/project/jsonstat-validator/)
 [![Python Version](https://img.shields.io/pypi/pyversions/jsonstat-validator.svg)](https://pypi.org/project/jsonstat-validator/)
 [![License](https://img.shields.io/github/license/ahmed-hassan19/jsonstat-validator.svg)](https://github.com/ahmed-hassan19/jsonstat-validator/blob/main/LICENSE)
 
