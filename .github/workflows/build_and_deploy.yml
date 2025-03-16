@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [main]
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   test:
@@ -44,7 +44,7 @@ jobs:
 
   deploy:
     needs: test
-    if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # Required for PyPI trusted publishing
@@ -53,7 +53,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Required for changelog generation
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}  # Explicit token for push permissions
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -67,13 +68,10 @@ jobs:
     
     - name: Update version in code
       run: |
-        # Extract version from the GitHub release tag or git tag
-        if [[ $GITHUB_REF == refs/tags/* ]]; then
-          VERSION=${GITHUB_REF#refs/tags/v}
-        else
-          VERSION=${GITHUB_REF#refs/tags/v}
-        fi
+        # Extract version from the GitHub release tag
+        VERSION=${GITHUB_REF#refs/tags/v}
         echo "Setting version to $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
         
         # Update version in both files
         sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" jsonstat_validator/__init__.py
@@ -81,17 +79,12 @@ jobs:
     
     - name: Generate Changelog
       run: |
-        # Extract version and release name
-        VERSION=${GITHUB_REF#refs/tags/v}
+        # Use the version from the environment
+        VERSION=${{ env.VERSION }}
         
-        # Try to get release name if this is a release event
-        if [[ $GITHUB_EVENT_NAME == 'release' ]]; then
-          RELEASE_NAME=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                          "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
-                          jq -r .name)
-        else
-          RELEASE_NAME=""
-        fi
+        # Get release name and body from the GitHub release
+        RELEASE_NAME=$(jq -r .release.name $GITHUB_EVENT_PATH)
+        RELEASE_BODY=$(jq -r .release.body $GITHUB_EVENT_PATH)
         
         TODAY=$(date '+%Y-%m-%d')
         
@@ -107,14 +100,19 @@ jobs:
         echo "## v$VERSION ($TODAY)" >> temp_changelog.md
         echo "" >> temp_changelog.md
         
-        # Add release description or generate from commits
         if [ -n "$RELEASE_NAME" ] && [ "$RELEASE_NAME" != "v$VERSION" ] && [ "$RELEASE_NAME" != "null" ]; then
           echo "### $RELEASE_NAME" >> temp_changelog.md
           echo "" >> temp_changelog.md
         fi
         
-        # Get commit messages since last tag (excluding merge commits)
-        git log $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --pretty=format:"- %s" --no-merges >> temp_changelog.md
+        # Add release description if available
+        if [ -n "$RELEASE_BODY" ] && [ "$RELEASE_BODY" != "null" ]; then
+          echo "$RELEASE_BODY" >> temp_changelog.md
+        else
+          # Fallback to commit messages if no release description
+          git log $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --pretty=format:"- %s" --no-merges >> temp_changelog.md
+        fi
+        
         echo "" >> temp_changelog.md
         echo "" >> temp_changelog.md
         
