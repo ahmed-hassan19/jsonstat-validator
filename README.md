@@ -29,11 +29,6 @@ This dataset would be considered valid by the official JSON-stat validator tool,
 - [Quick Start](#quick-start)
 - [Key Features](#key-features)
 - [Usage Examples](#usage-examples)
-  - [Creating and Validating a Dimension](#creating-and-validating-a-dimension)
-  - [Creating and Validating a Dataset](#creating-and-validating-a-dataset)
-  - [Creating and Validating a Collection](#creating-and-validating-a-collection)
-  - [Converting Between Python Models and JSON](#converting-between-python-models-and-json)
-  - [Validating Existing JSON-stat Files](#validating-existing-json-stat-files)
 - [Testing](#testing)
 - [Development](#development)
   - [Local Development Setup](#local-development-setup)
@@ -61,27 +56,7 @@ Validate a JSON-stat object with a single function call. See the `samples/quicks
 
 ## Usage Examples
 
-All examples can be found in the `samples/` directory.
-
-### Creating and Validating a Dimension
-
-A dimension represents a variable in your dataset, such as gender, time, or geography. See `samples/dimension_example.py` for the complete implementation.
-
-### Creating and Validating a Dataset
-
-Datasets are the main class in JSON-stat, representing statistical data with dimensions. Check out `samples/dataset_example.py` for a comprehensive example.
-
-### Creating and Validating a Collection
-
-Collections are containers for multiple datasets and dimensions. Refer to `samples/collection_example.py` for details.
-
-### Converting Between Python Models and JSON
-
-Convert your models to JSON or create models from existing JSON. The `samples/conversion_example.py` file demonstrates this functionality.
-
-### Validating Existing JSON-stat Files
-
-Validate JSON-stat files against the 2.0 specification. See `samples/validation_example.py` for implementation details.
+Code examples can be found in the `examples/` directory.
 
 ## Testing
 
@@ -127,6 +102,7 @@ pytest
 1. Create a new release on GitHub with a tag in the format `vX.Y.Z`
 
 The GitHub Actions workflow will automatically:
+
 - Run tests
 - Build the package
 - Update version numbers in both `__init__.py` and `pyproject.toml`
