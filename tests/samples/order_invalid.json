@@ -5,26 +5,6 @@
 	"label"  : "Demo of value ordering: what does not change, first",
 	"id" : ["A","B","C"],
 	"size" : [3,2,4],
-	"dimension" : {
-		"A" : {
-			"label" : "A: 3-categories dimension",
-			"category" : {
-				"index" : ["1", "2", "3"]
-			}
-		},
-		"B" : {
-			"label" : "B: 2-categories dimension",
-			"category" : {
-				"index" : ["1", "2"]
-			}
-		} ,
-		"C" : {
-			"label" : "C: 4-categories dimension",
-			"category" : {
-				"index" : ["1", "2", "3", "4"]
-			}
-		}
-	},
 	"value" : [    
 		"A1B1C1","A1B1C2","A1B1C3","A1B1C4",
 		"A1B2C1","A1B2C2","A1B2C3","A1B2C4",

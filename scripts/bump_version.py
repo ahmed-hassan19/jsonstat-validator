@@ -7,7 +7,7 @@ This script updates the version number in:
 2. pyproject.toml
 
 Usage:
-    python scripts/bump_version.py [major|minor|patch] [--dry-run]
+    python scripts/bump_version.py [major|minor|patch]
 """
 
 import argparse
@@ -41,7 +41,7 @@ def bump_version(current_version, bump_type):
         raise ValueError(f"Unknown bump type: {bump_type}")
 
 
-def update_init_file(new_version, dry_run=False):
+def update_init_file(new_version):
     """Update the version in __init__.py file."""
     init_path = Path("jsonstat_validator/__init__.py")
     content = read_file(init_path)
@@ -51,12 +51,11 @@ def update_init_file(new_version, dry_run=False):
         r'__version__ = "([^"]+)"', f'__version__ = "{new_version}"', content
     )
 
-    if not dry_run:
-        write_file(init_path, updated_content)
+    write_file(init_path, updated_content)
     return True
 
 
-def update_pyproject_toml(new_version, dry_run=False):
+def update_pyproject_toml(new_version):
     """Update the version in pyproject.toml file."""
     pyproject_path = Path("pyproject.toml")
     content = read_file(pyproject_path)
@@ -66,12 +65,11 @@ def update_pyproject_toml(new_version, dry_run=False):
         r'version = "([^"]+)"', f'version = "{new_version}"', content
     )
 
-    if not dry_run:
-        write_file(pyproject_path, updated_content)
+    write_file(pyproject_path, updated_content)
     return True
 
 
-def update_setup_py(new_version, dry_run=False):
+def update_setup_py(new_version):
     """Update the version in setup.py file if it has a hardcoded version."""
     setup_path = Path("setup.py")
     if not setup_path.exists():
@@ -89,7 +87,7 @@ def update_setup_py(new_version, dry_run=False):
     # Update hardcoded version if present
     updated_content = re.sub(r'version="([^"]+)"', f'version="{new_version}"', content)
 
-    if content != updated_content and not dry_run:
+    if content != updated_content:
         write_file(setup_path, updated_content)
         print("Updated version in setup.py")
         return True
@@ -119,11 +117,6 @@ def main():
         choices=["major", "minor", "patch"],
         help="Type of version bump to perform",
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be done without making changes",
-    )
     args = parser.parse_args()
 
     try:
@@ -133,23 +126,14 @@ def main():
         new_version = bump_version(current_version, args.bump_type)
         print(f"New version: {new_version}")
 
-        if args.dry_run:
-            print("Dry run mode: No changes will be made")
+        update_init_file(new_version)
+        update_pyproject_toml(new_version)
+        update_setup_py(new_version)
 
-        update_init_file(new_version, args.dry_run)
-        update_pyproject_toml(new_version, args.dry_run)
-        update_setup_py(new_version, args.dry_run)
-
-        if args.dry_run:
-            print(f"Would bump version to {new_version}")
-            print("Would need to update CHANGELOG.md")
-            tag_cmd = f"git tag v{new_version}"
-            print(f"Would need to commit changes and create a new tag: {tag_cmd}")
-        else:
-            print(f"Successfully bumped version to {new_version}")
-            print("Don't forget to update CHANGELOG.md!")
-            tag_cmd = f"git tag v{new_version}"
-            print(f"Commit the changes and create a new tag: {tag_cmd}")
+        print(f"Successfully bumped version to {new_version}")
+        print("Don't forget to update CHANGELOG.md!")
+        tag_cmd = f"git tag v{new_version}"
+        print(f"Commit the changes and create a new tag: {tag_cmd}")
     except Exception as e:
         print(f"Error: {e}")
         return 1

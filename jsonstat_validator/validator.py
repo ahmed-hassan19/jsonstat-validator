@@ -17,9 +17,12 @@ from pydantic import (
     Field,
     RootModel,
     ValidationError,
+    field_serializer,
     field_validator,
     model_validator,
 )
+
+# pylint: disable=[useless-parent-delegation]
 
 
 def is_valid_iso_date(date_string: str) -> bool:
@@ -31,7 +34,20 @@ def is_valid_iso_date(date_string: str) -> bool:
         return False
 
 
-class Unit(BaseModel):
+class JSONStatBaseModel(BaseModel):
+    """Base model for all JSON-stat models with common configuration."""
+
+    def model_dump(self, *, exclude_none: bool = True, by_alias: bool = True, **kwargs):
+        """Override model_dump to set exclude_none=True by default."""
+        return super().model_dump(exclude_none=exclude_none, by_alias=by_alias, **kwargs)
+
+    @field_serializer("href", check_fields=False, return_type=str)
+    def serialize_any_url(self, href: Optional[AnyUrl]) -> Optional[str]:
+        """Convert AnyUrl to string, if it exists."""
+        return str(href) if href else None
+
+
+class Unit(JSONStatBaseModel):
     """Unit of measurement of a dimension.
 
     It can be used to assign unit of measure metadata to the categories
@@ -98,7 +114,7 @@ class Unit(BaseModel):
     )
 
 
-class Category(BaseModel):
+class Category(JSONStatBaseModel):
     """Category of a dimension.
 
     It is used to describe the possible values of a dimension.
@@ -202,7 +218,7 @@ class Category(BaseModel):
         return self
 
 
-class Link(BaseModel):
+class Link(JSONStatBaseModel):
     """Model for a link.
 
     It is used to provide a list of links related to a dataset or a dimension,
@@ -236,7 +252,7 @@ class Link(BaseModel):
     )
 
 
-class Dimension(BaseModel):
+class Dimension(JSONStatBaseModel):
     """JSON-stat dimension.
 
     This is a full implementation of the dimension class
@@ -327,7 +343,7 @@ class Dimension(BaseModel):
         return v
 
 
-class DatasetRole(BaseModel):
+class DatasetRole(JSONStatBaseModel):
     """Role of a dataset."""
 
     time: Optional[List[str]] = Field(
@@ -356,7 +372,7 @@ class DatasetRole(BaseModel):
     )
 
 
-class Dataset(BaseModel):
+class Dataset(JSONStatBaseModel):
     """JSON-stat dataset."""
 
     version: str = Field(
@@ -503,6 +519,7 @@ class Dataset(BaseModel):
     def validate_dataset(self):
         """Dataset-wide validation checks."""
         # Validate size matches id length
+
         if len(self.size) != len(self.id):
             raise ValueError(
                 f"Size array length ({len(self.size)}) "
@@ -520,13 +537,11 @@ class Dataset(BaseModel):
         # Check all dimensions are defined
         missing_dims = [dim_id for dim_id in self.id if dim_id not in self.dimension]
         if missing_dims:
-            raise ValueError(
-                f"Missing dimension definitions: {', '.join(missing_dims)}"
-            )
+            raise ValueError(f"Missing dimension definitions: {', '.join(missing_dims)}")
         return self
 
 
-class Collection(BaseModel):
+class Collection(JSONStatBaseModel):
     """JSON-stat collection."""
 
     version: str = Field(
@@ -587,6 +602,15 @@ class JSONStatSchema(RootModel):
         discriminator="class_",
     )
 
+    def model_dump(self, *, exclude_none: bool = True, by_alias: bool = True, **kwargs):
+        """Override model_dump to set exclude_none=True by default."""
+        return super().model_dump(exclude_none=exclude_none, by_alias=by_alias, **kwargs)
+
+    @field_serializer("href", check_fields=False, return_type=str)
+    def serialize_any_url(self, href: Optional[AnyUrl]) -> Optional[str]:
+        """Convert AnyUrl to string, if it exists."""
+        return str(href) if href else None
+
 
 def validate_jsonstat(data: Dict[str, Any]) -> bool:
     """
@@ -602,7 +626,7 @@ def validate_jsonstat(data: Dict[str, Any]) -> bool:
         ValueError: If the data does not conform to the JSON-stat specification
     """
     try:
-        JSONStatSchema.model_validate(data)
+        JSONStatSchema(**data)
         return True
-    except ValidationError as exc:
-        raise ValueError(f"Validation error: {exc}") from exc
+    except ValidationError as e:
+        raise ValueError(e) from e
