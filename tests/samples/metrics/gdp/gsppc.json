@@ -1,0 +1,16 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/metrics/gdp/gsppc.json",
+	"label" : "Metric: Gross State Product per capita",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/us-gsp.json",
+				"label" : "US States by GSP and population"
+			}
+		]
+	}
+}

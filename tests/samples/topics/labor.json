@@ -1,0 +1,26 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/topics/labor.json",
+	"label" : "Topic: Labor",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/oecd.json",
+				"label" : "Unemployment rate in the OECD countries 2003-2014"
+			},
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/us-unr.json",
+				"label" : "Unemployment Rates by County, 2012 Annual Averages"
+			},
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/us-labor.json",
+				"label" : "Labor Force Data by County, 2012 Annual Averages"
+			}
+		]
+	}
+}

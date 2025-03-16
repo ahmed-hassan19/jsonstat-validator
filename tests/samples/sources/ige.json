@@ -1,0 +1,16 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/sources/ige.json",
+	"label" : "Source: Instituto Galego de Estatística",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/galicia.json",
+				"label" : "Population by province of residence, place of birth, age, gender and year in Galicia"
+			}
+		]
+	}
+}

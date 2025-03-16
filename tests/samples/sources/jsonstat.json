@@ -1,0 +1,21 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/sources/jsonstat.json",
+	"label" : "Source: JSON-stat",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/order.json",
+				"label" : "Demo of value ordering: what does not change, first"
+			},
+			{
+				"class" : "dataset",
+				"href" : "http://json-stat.org/samples/hierarchy.json",
+				"label" : "Demo of hierarchical dimension"
+			}
+		]
+	}
+}

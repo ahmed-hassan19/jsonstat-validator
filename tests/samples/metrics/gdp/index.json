@@ -1,0 +1,26 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/metrics/gdp/index.json",
+	"label" : "Metric Group: Gross Domestic Product",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "collection",
+				"href" : "http://json-stat.org/samples/metrics/gdp/gsp.json",
+				"label" : "Metric: Gross State Product"
+			},
+			{
+				"class" : "collection",
+				"href" : "http://json-stat.org/samples/metrics/gdp/gspw.json",
+				"label" : "Metric: Gross State Product as percentage of national GDP"
+			},
+			{
+				"class" : "collection",
+				"href" : "http://json-stat.org/samples/metrics/gdp/gsppc.json",
+				"label" : "Metric: Gross State Product per capita"
+			}
+		]
+	}
+}

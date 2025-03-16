@@ -1,0 +1,130 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [created]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e ".[dev]"
+    
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=90 --statistics
+    
+    - name: Test with pytest
+      run: |
+        pytest
+
+  deploy:
+    needs: test
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for PyPI trusted publishing
+      contents: write  # Required for changelog update
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for changelog generation
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Setup Git
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Update version in code
+      run: |
+        # Extract version from the GitHub release tag
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "Setting version to $VERSION"
+        
+        # Update version in both files
+        sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" jsonstat_validator/__init__.py
+        sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+    
+    - name: Generate Changelog
+      run: |
+        # Extract version and release name
+        VERSION=${GITHUB_REF#refs/tags/v}
+        RELEASE_NAME=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                        "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
+                        jq -r .name)
+        
+        TODAY=$(date '+%Y-%m-%d')
+        
+        # If CHANGELOG.md doesn't exist, create it
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+        fi
+        
+        # Create a temporary file with new release information at the top
+        echo "# Changelog" > temp_changelog.md
+        echo "" >> temp_changelog.md
+        echo "## v$VERSION ($TODAY)" >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        
+        # Add release description or generate from commits
+        if [ -n "$RELEASE_NAME" ] && [ "$RELEASE_NAME" != "v$VERSION" ] && [ "$RELEASE_NAME" != "null" ]; then
+          echo "### $RELEASE_NAME" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+        fi
+        
+        # Get commit messages since last tag (excluding merge commits)
+        git log $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --pretty=format:"- %s" --no-merges >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        
+        # Append the existing changelog (skipping the title)
+        tail -n +3 CHANGELOG.md >> temp_changelog.md 2>/dev/null || true
+        
+        # Replace the old changelog with the new one
+        mv temp_changelog.md CHANGELOG.md
+    
+    - name: Commit and Push Version and Changelog Updates
+      run: |
+        git add jsonstat_validator/__init__.py pyproject.toml CHANGELOG.md
+        git commit -m "Update version and changelog for v${GITHUB_REF#refs/tags/v}" || echo "No changes to commit"
+        git push
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1 

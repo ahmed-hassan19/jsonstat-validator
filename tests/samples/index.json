@@ -1,0 +1,36 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "https://json-stat.org/samples/index.json",
+	"label" : "JSON-stat Sample Entry Point",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "collection",
+				"href" : "https://json-stat.org/samples/topics/index.json",
+				"label" : "Topics"
+			},
+			{
+				"class" : "collection",
+				"href" : "https://json-stat.org/samples/areas/index.json",
+				"label" : "Areas"
+			},
+			{
+				"class" : "collection",
+				"href" : "https://json-stat.org/samples/sources/index.json",
+				"label" : "Sources"
+			},
+			{
+				"class" : "collection",
+				"href" : "https://json-stat.org/samples/metrics/index.json",
+				"label" : "Metric Groups"
+			},
+			{
+				"class" : "collection",
+				"href" : "https://json-stat.org/samples/datasets/index.json",
+				"label" : "Full List of Datasets"
+			}
+		]
+	}
+}

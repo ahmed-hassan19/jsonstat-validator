@@ -1,0 +1,21 @@
+{
+	"version" : "2.0",
+	"class" : "collection",
+	"href" : "http://json-stat.org/samples/metrics/pop/index.json",
+	"label" : "Metric Group: Population",
+	"updated" : "2016-01-01",
+	"link" : {
+		"item" : [
+			{
+				"class" : "collection",
+				"href" : "http://json-stat.org/samples/metrics/pop/pop.json",
+				"label" : "Metric: Population"
+			},
+			{
+				"class" : "collection",
+				"href" : "http://json-stat.org/samples/metrics/pop/popw.json",
+				"label" : "Metric: Weight in the population"
+			}
+		]
+	}
+}
