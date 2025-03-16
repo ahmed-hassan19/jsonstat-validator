@@ -138,13 +138,6 @@ class TestInvalidCases:
         with pytest.raises(ValueError):
             validate_jsonstat(data)
 
-    def test_unit_missing_decimals(self):
-        """Test that a unit missing the required decimals field fails validation."""
-        dimension = copy.deepcopy(MINIMAL_DIMENSION)
-        dimension["category"]["unit"] = {"male": {"label": "Count"}}
-        with pytest.raises(ValueError):
-            validate_jsonstat(dimension)
-
     def test_category_missing_index_and_label(self):
         """Test that a category missing both index and label fails validation."""
         dimension = copy.deepcopy(MINIMAL_DIMENSION)

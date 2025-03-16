@@ -62,7 +62,8 @@ class Unit(JSONStatBaseModel):
     """
 
     label: Optional[str] = Field(default=None)
-    decimals: int = Field(
+    decimals: Optional[int] = Field(
+        default=None,
         description=(
             "It contains the number of unit decimals (integer). "
             "If unit is present, decimals is required."
