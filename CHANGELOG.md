@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.2 [pre-release] (2025-03-17)
+## v0.1.2 [pre-release] (2025-03-16)
 
 Pre-release of the JSON-stat validator package
 
@@ -8,3 +8,7 @@ Pre-release of the JSON-stat validator package
 - Pydantic models for Dataset, Dimension, and Collection
 - Tests against the [official JSON-stat samples](https://json-stat.org/samples/collection.json) and custom fine-grained tests (see `tests/` folder)
 - Example code snippets (see `examples/` folder)
+
+## v0.1.3 [pre-release] (2025-03-17)
+
+- Add a check to enforce same `label` and `index` keys in the `Category` class if both are present and of type `dict`.
