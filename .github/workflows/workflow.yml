@@ -1,10 +1,6 @@
 name: Test and Deploy
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   release:
     types: [published]  # Trigger only when a release is published
 
