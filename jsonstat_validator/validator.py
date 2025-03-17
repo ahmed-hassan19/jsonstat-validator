@@ -179,11 +179,15 @@ class Category(JSONStatBaseModel):
 
         # Ensure index and label have the same keys if both are dictionaries
         if self.index and self.label:
-            if isinstance(self.index, dict) and isinstance(self.label, dict):
-                if set(self.index.keys()) != set(self.label.keys()):
+            if isinstance(self.label, dict):
+                index_keys = (
+                    set(self.index)
+                    if isinstance(self.index, list)
+                    else set(self.index.keys())
+                )
+                if index_keys != set(self.label.keys()):
                     raise ValueError(
-                        "If `index` and `label` are both dictionaries, "
-                        "they must have the same keys."
+                        "Validation error: `index` and `label` must have the same keys."
                     )
 
         # Ensure coordinates are a dictionary where keys are category IDs

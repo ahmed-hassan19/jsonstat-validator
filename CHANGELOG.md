@@ -12,3 +12,7 @@ Pre-release of the JSON-stat validator package
 ## v0.1.3 [pre-release] (2025-03-17)
 
 - Add a check to enforce same `label` and `index` keys in the `Category` class if both are present and of type `dict`.
+
+## v0.1.4 [pre-release] (2025-03-17)
+
+- Add a check to enforce same `label` and `index` keys in the `Category` class if label is a `dict` and index is a `list`.

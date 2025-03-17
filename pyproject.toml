@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jsonstat-validator"
-version = "0.1.3"
+version = "0.1.4"
 description = "A Python validator for the JSON-stat 2.0 standard format, based on Pydantic."
 readme = "README.md"
 authors = [
