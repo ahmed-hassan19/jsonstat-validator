@@ -30,7 +30,6 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Pull Requests
 
-- Fill in the required template
 - Follow the Python style guide (PEP 8)
 - Include appropriate tests
 - Update documentation as needed
