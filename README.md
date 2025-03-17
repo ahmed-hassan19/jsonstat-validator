@@ -23,7 +23,7 @@ Please note that this implementation is intentionally more strict than the offic
 
 This dataset would be considered valid by the official JSON-stat validator tool, but will fail validation in this package because it violates the rule in the `dataset.size` section of the specification stating that: `size has the same number of elements and in the same order as in id`.
 
-Additionally, we enforce the `role` field as required when class=`dataset`.
+Additionally, we enforce the `role` field as required when `class=dataset`.
 
 ## Table of Contents
 
