@@ -250,6 +250,7 @@ class Link(JSONStatBaseModel):
     href: Optional[AnyUrl] = Field(default=None, description="It specifies a URL.")
     class_: Optional[Literal["dataset", "dimension", "collection"]] = Field(
         default=None,
+        alias="class",
         description=(
             "It describes the class of the resource referenced "
             "in the link. Not required when the resource referenced "

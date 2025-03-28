@@ -22,7 +22,7 @@ from jsonstat_validator.validator import (
     validate_jsonstat,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.1.5"
 __all__ = [
     "Dataset",
     "Dimension",
