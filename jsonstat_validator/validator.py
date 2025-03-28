@@ -707,6 +707,12 @@ class Collection(JSONStatBaseModel):
             "(datasets, dimensions, collections)."
         ),
     )
+    extension: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Extension allows JSON-stat to be extended for particular needs. "
+        "Providers are free to define where they include this property and "
+        "what children are allowed in each case.",
+    )
 
     @field_validator("updated", mode="after")
     @classmethod

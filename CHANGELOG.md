@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.6 [pre-release] (2025-03-28)
+
+- Fix: add `extension` field to the `Collection` class.
+
 ## v0.1.5 [pre-release] (2025-03-28)
 
 - Fix: add alias for `class_` field in `Link` class.
