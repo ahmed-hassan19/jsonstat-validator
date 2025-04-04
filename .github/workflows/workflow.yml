@@ -3,15 +3,236 @@ name: Test and Deploy
 on:
   release:
     types: [published]  # Trigger only when a release is published
+  workflow_dispatch:  # Allow manual triggering for testing
+    inputs:
+      test_mode:
+        description: 'Run in test mode (no publishing)'
+        type: boolean
+        default: true
+        required: true
+      test_version:
+        description: 'Test version (e.g. 0.1.7)'
+        type: string
+        default: '0.1.7.dev0'
+        required: true
 
 jobs:
-  test:
+  update-version:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    permissions:
+      contents: write  # Need write permission to push changes back
+    outputs:
+      test_branch: ${{ env.TEST_BRANCH }}
+      is_test_mode: ${{ env.TEST_MODE }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Extract version from tag or input
+        id: extract_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Use the test version from the workflow_dispatch input
+            VERSION="${{ github.event.inputs.test_version }}"
+            echo "TEST_MODE=true" >> $GITHUB_ENV
+            
+            # Convert dots to dashes for branch name
+            BRANCH_VERSION=$(echo $VERSION | tr '.' '-')
+            TEST_BRANCH="test-workflow-$BRANCH_VERSION"
+            echo "TEST_BRANCH=$TEST_BRANCH" >> $GITHUB_ENV
+            
+            echo "Using test version: $VERSION (branch: $TEST_BRANCH)"
+          else
+            # Get the tag (e.g., v1.2.3 or 1.2.3)
+            TAG=${GITHUB_REF#refs/tags/}
+            # Remove 'v' prefix if present
+            VERSION=${TAG#v}
+            echo "TEST_MODE=false" >> $GITHUB_ENV
+            echo "TEST_BRANCH=" >> $GITHUB_ENV
+            echo "Version extracted: $VERSION from tag $TAG"
+            
+            # Get release information including body/notes
+            if [[ "${{ github.event.release.body }}" != "" ]]; then
+              echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+              echo "${{ github.event.release.body }}" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+              echo "Release notes found and stored"
+            else
+              echo "RELEASE_NOTES=Release version $VERSION" >> $GITHUB_ENV
+              echo "No release notes found, using default text"
+            fi
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Update version in files
+        run: |
+          # Update version in __init__.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" jsonstat_validator/__init__.py
+          
+          # Update version in pyproject.toml
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          
+          echo "Updated version to $VERSION in files"
+      
+      - name: Update CHANGELOG.md
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          
+          # Only update the pre-release date for the current version
+          # Look for a line with the current version and [pre-release] marker
+          VERSION_PATTERN="## v$VERSION \[pre-release\]"
+          
+          if grep -q "$VERSION_PATTERN" CHANGELOG.md; then
+            # Replace only the pre-release date for the current version and remove [pre-release] marker
+            sed -i "s/$VERSION_PATTERN ([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\})/## v$VERSION ($TODAY)/" CHANGELOG.md
+            
+            # Process and add the release notes from GitHub release
+            if [[ "${{ github.event_name }}" != "workflow_dispatch" && -n "$RELEASE_NOTES" ]]; then
+              # Find the line number of the version header
+              LINE_NUM=$(grep -n "## v$VERSION ($TODAY)" CHANGELOG.md | cut -d: -f1)
+              
+              if [[ -n "$LINE_NUM" ]]; then
+                # Extract existing content after version header until next version header or end of file
+                NEXT_VERSION_LINE=$(tail -n +$((LINE_NUM+1)) CHANGELOG.md | grep -n "^## " | head -1 | cut -d: -f1)
+                
+                if [[ -n "$NEXT_VERSION_LINE" ]]; then
+                  # Delete all content between the version headers
+                  sed -i "$((LINE_NUM+1)),$((LINE_NUM+NEXT_VERSION_LINE-1))d" CHANGELOG.md
+                else
+                  # Find the next non-empty line after the version header
+                  NEXT_LINE=$(tail -n +$((LINE_NUM+1)) CHANGELOG.md | grep -n "[^ \t]" | head -1 | cut -d: -f1)
+                  if [[ -n "$NEXT_LINE" ]]; then
+                    sed -i "$((LINE_NUM+1)),$((LINE_NUM+NEXT_LINE-1))d" CHANGELOG.md
+                  fi
+                fi
+                
+                # Process multi-line release notes
+                PROCESSED_NOTES=""
+                
+                # Read release notes line by line
+                echo "$RELEASE_NOTES" | while IFS= read -r line; do
+                  # Skip empty lines at the beginning
+                  if [[ -z "$PROCESSED_NOTES" && -z "$line" ]]; then
+                    continue
+                  fi
+                  
+                  # Add the line to processed notes
+                  if [[ -n "$line" ]]; then
+                    # If line doesn't start with - or *, add it
+                    if [[ ! "$line" =~ ^[[:space:]]*[-*] ]]; then
+                      line="- $line"
+                    fi
+                  fi
+                  PROCESSED_NOTES+="$line\n"
+                done
+                
+                # Create a temporary file with the processed notes
+                echo -e "\n$PROCESSED_NOTES" > /tmp/release_notes.txt
+                
+                # Insert the processed notes after the version header
+                sed -i "$LINE_NUM r /tmp/release_notes.txt" CHANGELOG.md
+                
+                echo "Updated CHANGELOG.md with release notes from GitHub release"
+              fi
+            else
+              # For test mode or if no release notes available
+              echo "No release notes available to update CHANGELOG.md"
+            fi
+          else
+            echo "Warning: Could not find version $VERSION in CHANGELOG.md"
+          fi
+          
+          # Add a new pre-release entry for the next version
+          NEXT_VERSION="${VERSION%.*}.$((${VERSION##*.}))"
+          NEXT_YEAR=$(date +%Y)
+          NEW_ENTRY="## v$NEXT_VERSION [pre-release] ($NEXT_YEAR-$(date +%m-%d))\n\n- \n\n"
+          sed -i "s/# Changelog/# Changelog\n\n$NEW_ENTRY/" CHANGELOG.md
+          
+          echo "Added new entry for v$NEXT_VERSION"
+      
+      - name: Commit changes
+        if: ${{ env.TEST_MODE == 'true' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Test"
+          
+          # Convert dots to dashes for branch name
+          git checkout -b $TEST_BRANCH
+          
+          git add jsonstat_validator/__init__.py pyproject.toml CHANGELOG.md
+          git commit -m "TEST: Bump version to $VERSION and update CHANGELOG"
+          git push -f origin $TEST_BRANCH
+          echo "Changes pushed to test branch: $TEST_BRANCH"
+      
+      - name: Commit changes to main
+        if: ${{ env.TEST_MODE == 'false' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Get default branch name (usually main or master)
+          DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | sed 's/.*: //')
+          echo "Default branch is $DEFAULT_BRANCH"
+          
+          # Fetch and checkout the default branch
+          git fetch origin $DEFAULT_BRANCH
+          git checkout $DEFAULT_BRANCH
+          
+          # Apply changes to files
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" jsonstat_validator/__init__.py
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          
+          # Update CHANGELOG.md on the branch
+          if grep -q "## v$VERSION \[pre-release\]" CHANGELOG.md; then
+            TODAY=$(date +%Y-%m-%d)
+            # Update the version and date
+            sed -i "s/## v$VERSION \[pre-release\] ([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\})/## v$VERSION ($TODAY)/" CHANGELOG.md
+            
+            # If release notes are available, add them
+            if [[ -n "$RELEASE_NOTES" ]]; then
+              # Process and add the release notes (simplified version)
+              PROCESSED_NOTES=""
+              echo "$RELEASE_NOTES" | while IFS= read -r line; do
+                if [[ -n "$line" ]]; then
+                  if [[ ! "$line" =~ ^[[:space:]]*[-*] ]]; then
+                    line="- $line"
+                  fi
+                  PROCESSED_NOTES+="$line\n"
+                fi
+              done
+              
+              # Find the line with the version header
+              LINE_NUM=$(grep -n "## v$VERSION ($TODAY)" CHANGELOG.md | cut -d: -f1)
+              if [[ -n "$LINE_NUM" ]]; then
+                # Create a temp file with the notes
+                echo -e "\n$PROCESSED_NOTES" > /tmp/rel_notes.txt
+                # Insert after the version line
+                sed -i "$LINE_NUM r /tmp/rel_notes.txt" CHANGELOG.md
+              fi
+            fi
+          fi
+          
+          # Commit and push changes
+          git add jsonstat_validator/__init__.py pyproject.toml CHANGELOG.md
+          git commit -m "Bump version to $VERSION and update CHANGELOG"
+          git push origin $DEFAULT_BRANCH
+
+  test:
+    runs-on: ubuntu-latest
+    needs: update-version
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && needs.update-version.outputs.test_branch || github.event.repository.default_branch }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -25,12 +246,15 @@ jobs:
 
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'release'
+    needs: [update-version, test]
+    # Skip deployment in test mode
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.test_mode != 'true' }}
     permissions:
       id-token: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && needs.update-version.outputs.test_branch || github.event.repository.default_branch }}
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
