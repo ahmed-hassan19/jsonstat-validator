@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import (
     AnyUrl,
     BaseModel,
+    ConfigDict,
     Field,
     RootModel,
     ValidationError,
@@ -45,6 +46,8 @@ class JSONStatBaseModel(BaseModel):
     def serialize_any_url(self, href: Optional[AnyUrl]) -> Optional[str]:
         """Convert AnyUrl to string, if it exists."""
         return str(href) if href else None
+
+    model_config = ConfigDict(extra="forbid", serialize_by_alias=True)
 
 
 class Unit(JSONStatBaseModel):
