@@ -13,7 +13,7 @@ For more information on JSON-stat, see: https://json-stat.org/
 from jsonstat_validator.models import Collection, Dataset, Dimension, JSONStatSchema
 from jsonstat_validator.validator import validate_jsonstat
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"
 __all__ = [
     "Dataset",
     "Dimension",

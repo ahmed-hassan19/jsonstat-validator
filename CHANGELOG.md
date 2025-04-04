@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0 (2025-04-04)
+
+
+
+- 
+
+
+
 ## v0.1.6 [pre-release] (2025-03-28)
 
 - Fix: add `extension` field to the `Collection` class.
