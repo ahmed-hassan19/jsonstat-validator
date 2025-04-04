@@ -169,6 +169,14 @@ class Category(JSONStatBaseModel):
             "of a dimension with a metric role."
         ),
     )
+    note: Optional[Dict[str, List[str]]] = Field(
+        default=None,
+        description=(
+            "note allows to assign annotations to datasets (array), dimensions "
+            "(array) and categories (object). To assign annotations to individual "
+            "data, use status: https://json-stat.org/full/#status."
+        ),
+    )
 
     @model_validator(mode="after")
     def validate_category(self):
@@ -320,8 +328,9 @@ class Dimension(JSONStatBaseModel):
     note: Optional[List[str]] = Field(
         default=None,
         description=(
-            "Note allows to assign annotations to datasets (array), dimensions (array) "
-            "and categories (object)."
+            "note allows to assign annotations to datasets (array), dimensions "
+            "(array) and categories (object). To assign annotations to individual "
+            "data, use status: https://json-stat.org/full/#status."
         ),
     )
     updated: Optional[str] = Field(
@@ -417,8 +426,9 @@ class DatasetDimension(JSONStatBaseModel):
     note: Optional[List[str]] = Field(
         default=None,
         description=(
-            "Note allows to assign annotations to datasets (array), dimensions (array) "
-            "and categories (object)."
+            "note allows to assign annotations to datasets (array), dimensions "
+            "(array) and categories (object). To assign annotations to individual "
+            "data, use status: https://json-stat.org/full/#status."
         ),
     )
     updated: Optional[str] = Field(
@@ -597,8 +607,9 @@ class Dataset(JSONStatBaseModel):
     note: Optional[List[str]] = Field(
         default=None,
         description=(
-            "Note allows to assign annotations to datasets (array), dimensions (array) "
-            "and categories (object)."
+            "note allows to assign annotations to datasets (array), dimensions "
+            "(array) and categories (object). To assign annotations to individual "
+            "data, use status: https://json-stat.org/full/#status."
         ),
     )
     extension: Optional[Dict[str, Any]] = Field(
@@ -705,6 +716,19 @@ class Collection(JSONStatBaseModel):
         description=(
             "The items of the collection can be of any class "
             "(datasets, dimensions, collections)."
+        ),
+    )
+    source: Optional[str] = Field(
+        default=None,
+        description="It contains a language-dependent short text describing the source "
+        "of the collection.",
+    )
+    note: Optional[List[str]] = Field(
+        default=None,
+        description=(
+            "note allows to assign annotations to datasets (array), dimensions "
+            "(array) and categories (object). To assign annotations to individual "
+            "data, use status: https://json-stat.org/full/#status."
         ),
     )
     extension: Optional[Dict[str, Any]] = Field(
