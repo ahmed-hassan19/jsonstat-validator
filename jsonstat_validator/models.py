@@ -184,7 +184,7 @@ class Category(JSONStatBaseModel):
     def validate_category(self):
         """Category-wide validation checks."""
         # Ensure at least one of index or label fields is provided
-        if not self.index and not self.label:
+        if self.index is None and self.label is None:
             raise ValueError("At least one of `index` or `label` is required.")
 
         # Ensure index and label have the same keys if both are dictionaries

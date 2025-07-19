@@ -1,16 +1,34 @@
 # Changelog
 
+## v0.2.2 (2025-07-20)
+
+### Changed
+
+- Expose the `JSONStatBaseModel` model for public import.
+
+## v0.2.1 (2025-07-19)
+
+### Changed
+
+- Allow a dimension with empty dimension members (`category.index` and `category.label`).
+- Expose the `Category` models for public import.
+
 ## v0.2.0 (2025-04-04)
+
 ### Added
+
 - Added support for `note` and `source` fields in the `Collection` model.
 
 ### Changed
-- Changed type of `category.note` from `List[str]` to `Dict[str, List[str]]` as stated in the [JSON-stat specification](https://json-stat.org/full/#note).
-  > [note](https://json-stat.org/full/#note) allows to assign annotations to datasets (array), dimensions (array) and categories (object).
 
+- Changed type of `category.note` from `List[str]` to `Dict[str, List[str]]` as stated in the [JSON-stat specification](https://json-stat.org/full/#note).
+
+  > [note](https://json-stat.org/full/#note) allows to assign annotations to datasets (array), dimensions (array) and categories (object).
+  >
 - Modified `model_config.extra` from `ignore` to `forbid` to prevent passing undefined fields (extra fields are only allowed within the `extension` object).
 
 ### Refactored
+
 - Separated validation logic from model definitions for better maintainability and separation of concerns.
 - Improved error reporting with more human-readable error messages.
 

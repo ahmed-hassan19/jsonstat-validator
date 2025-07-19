@@ -101,7 +101,8 @@ pytest
 
 ### Creating a New Release
 
-1. Create a new release on GitHub with a tag in the format `vX.Y.Z`
+1. Update the `CHANGELOG.md`.
+2. Create a new release on GitHub with a tag in the format `vX.Y.Z`
 
 The GitHub Actions workflow will automatically:
 
@@ -109,7 +110,6 @@ The GitHub Actions workflow will automatically:
 - Build the package
 - Update version numbers in both `__init__.py` and `pyproject.toml`
 - Publish the package to PyPI
-- Update the CHANGELOG.md with the release date and commit messages
 
 ## Contributing
 
