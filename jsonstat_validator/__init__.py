@@ -19,7 +19,7 @@ from jsonstat_validator.models import (
 )
 from jsonstat_validator.validator import validate_jsonstat
 
-__version__ = "0.2.0"
+__version__ = "0.2.2"
 __all__ = [
     "Category",
     "Collection",
