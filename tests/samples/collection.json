@@ -39,7 +39,7 @@
 			{
 				"class" : "dataset",
 				"href" : "https://json-stat.org/samples/order.json",
-				"label"  : "Demo of value ordering: what does not change, first"				
+				"label"  : "Demo of value ordering: what does not change, first"
 			},
 			{
 				"class" : "dataset",

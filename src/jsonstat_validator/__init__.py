@@ -9,15 +9,20 @@ dimensions are organized in categories.
 For more information on JSON-stat, see: https://json-stat.org/
 """
 
-from jsonstat_validator.models import (
-    Category,
-    Collection,
-    Dataset,
-    Dimension,
-    JSONStatBaseModel,
-    JSONStatSchema,
-)
+from jsonstat_validator.models.base import JSONStatBaseModel, JSONStatSchema
+from jsonstat_validator.models.category import Category
+from jsonstat_validator.models.collection import Collection
+from jsonstat_validator.models.dataset import Dataset
+from jsonstat_validator.models.dimension import Dimension
+from jsonstat_validator.models.unit import Unit
+from jsonstat_validator.utils import JSONStatValidationError
 from jsonstat_validator.validator import validate_jsonstat
+
+# Rebuild models to resolve forward references
+Collection.model_rebuild()
+Dataset.model_rebuild()
+Dimension.model_rebuild()
+JSONStatSchema.model_rebuild()
 
 __version__ = "0.2.2"
 __all__ = [
@@ -27,5 +32,7 @@ __all__ = [
     "Dimension",
     "JSONStatBaseModel",
     "JSONStatSchema",
+    "JSONStatValidationError",
+    "Unit",
     "validate_jsonstat",
 ]

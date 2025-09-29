@@ -1,6 +1,16 @@
+# Include essential documentation
 include LICENSE
 include README.md
-include requirements.txt
-include pyproject.toml
-recursive-include jsonstat_validator/tests *.py
-recursive-include jsonstat_validator/tests/samples *.json 
+include CHANGELOG.md
+include CONTRIBUTING.md
+
+# Include test files for source distributions
+recursive-include tests *.py
+recursive-include tests/samples *.json
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .DS_Store
+global-exclude *.ipynb

@@ -1,0 +1,210 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+# Prevent concurrent publishing attempts
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read  # Default to read-only
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Get project Python version
+        id: project_python
+        run: |
+          # Extract major.minor version from .python-version (e.g., 3.11.8 -> 3.11)
+          PROJECT_VERSION=$(cat .python-version | cut -d. -f1,2)
+          echo "version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python $PROJECT_VERSION"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ steps.project_python.outputs.version }}
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run pytest
+        run: uv run pytest tests/ -v --cov=src/jsonstat_validator --cov-report=term-missing
+
+      - name: Run linter (ruff)
+        run: uv run ruff check src/ tests/
+
+  update-version-and-changelog:
+    name: Update Version and Changelog
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: write
+    outputs:
+      commit_sha: ${{ steps.push_changes.outputs.commit_sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get project Python version
+        id: project_python
+        run: |
+          # Extract major.minor version from .python-version (e.g., 3.11.8 -> 3.11)
+          PROJECT_VERSION=$(cat .python-version | cut -d. -f1,2)
+          echo "version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python $PROJECT_VERSION"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ steps.project_python.outputs.version }}
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          # Remove 'v' prefix from tag (e.g., v0.2.3 -> 0.2.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Update version in pyproject.toml
+        run: |
+          uv version ${{ steps.get_version.outputs.version }}
+
+      - name: Update version in __init__.py
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          sed -i "s/__version__ = \".*\"/__version__ = \"${VERSION}\"/" src/jsonstat_validator/__init__.py
+
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          DATE=$(date +%Y-%m-%d)
+          RELEASE_NOTES=$(cat << 'EOF'
+          ${{ github.event.release.body }}
+          EOF
+          )
+
+          # Create a temporary file with the new changelog entry
+          {
+            echo "# Changelog"
+            echo ""
+            echo "## [Unreleased]"
+            echo ""
+            echo "## v${VERSION} (${DATE})"
+            echo ""
+            echo "${RELEASE_NOTES}"
+            echo ""
+            # Skip the first 3 lines (# Changelog, blank, ## [Unreleased]) of the old changelog
+            tail -n +4 CHANGELOG.md
+          } > CHANGELOG.tmp
+
+          mv CHANGELOG.tmp CHANGELOG.md
+
+      - name: Commit version and changelog updates
+        id: push_changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add pyproject.toml src/jsonstat_validator/__init__.py CHANGELOG.md uv.lock
+          git commit -m "chore: bump version to ${{ steps.get_version.outputs.version }} and update changelog"
+          git push origin HEAD:main
+
+          # Capture the commit SHA that was just pushed
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "Pushed commit: $COMMIT_SHA"
+
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: update-version-and-changelog
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code (with updated version)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.update-version-and-changelog.outputs.commit_sha }}
+
+      - name: Get project Python version
+        id: project_python
+        run: |
+          # Extract major.minor version from .python-version (e.g., 3.11.8 -> 3.11)
+          PROJECT_VERSION=$(cat .python-version | cut -d. -f1,2)
+          echo "version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python $PROJECT_VERSION"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ steps.project_python.outputs.version }}
+
+      - name: Build package
+        run: uv build
+
+      - name: Smoke test (wheel)
+        run: |
+          uv run --isolated --no-project --with dist/*.whl python -c "import jsonstat_validator; print(f'Successfully imported jsonstat_validator v{jsonstat_validator.__version__}')"
+
+      - name: Smoke test (source distribution)
+        run: |
+          uv run --isolated --no-project --with dist/*.tar.gz python -c "import jsonstat_validator; print(f'Successfully imported jsonstat_validator v{jsonstat_validator.__version__}')"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [update-version-and-changelog, build]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/jsonstat-validator
+    permissions:
+      id-token: write  # Required for trusted publishing
+      contents: read
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Publish to PyPI
+        run: uv publish

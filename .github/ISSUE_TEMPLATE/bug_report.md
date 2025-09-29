@@ -4,9 +4,7 @@ about: Create a report to help us improve
 title: '[BUG] '
 labels: bug
 assignees: ''
-
 ---
-
 **Describe the bug**
 A clear and concise description of what the bug is.
 
@@ -35,7 +33,7 @@ If applicable, provide a sample of the JSON-stat data that causes the issue.
 **Environment (please complete the following information):**
 
 - OS: [e.g. Ubuntu 22.04, Windows 11, macOS 13.0]
-- Python version: [e.g. 3.8, 3.9, 3.10]
+- Python version: [e.g. 3.11, 3.12, 3.13]
 - Package version: [e.g. 0.1.0]
 
 **Additional context**

@@ -1,13 +1,13 @@
-from typing import Any, Dict
+"""Validator for JSON-stat."""
 
 from pydantic import ValidationError
 
-from jsonstat_validator.models import JSONStatSchema
+from jsonstat_validator.models.base import JSONStatSchema
+from jsonstat_validator.utils import JSONStatValidationError
 
 
 def format_error_location(loc: tuple) -> str:
-    """
-    Format error location to be more human-readable.
+    """Format error location to be more human-readable.
 
     Args:
         loc: Location tuple from ValidationError
@@ -27,8 +27,7 @@ def format_error_location(loc: tuple) -> str:
 
 
 def format_validation_errors(e: ValidationError) -> str:
-    """
-    Format ValidationError to be more human-readable.
+    """Format ValidationError to be more human-readable.
 
     Args:
         e: ValidationError instance
@@ -48,9 +47,8 @@ def format_validation_errors(e: ValidationError) -> str:
     return "\n".join(errors)
 
 
-def validate_jsonstat(data: Dict[str, Any]) -> bool:
-    """
-    Validate a JSON-stat 2.0 object against the specification.
+def validate_jsonstat(data: dict) -> bool:
+    """Validate a JSON-stat 2.0 object against the specification.
 
     Args:
         data: A dictionary containing JSON-stat data
@@ -64,7 +62,8 @@ def validate_jsonstat(data: Dict[str, Any]) -> bool:
     """
     try:
         JSONStatSchema.model_validate(data)
-        return True
     except ValidationError as e:
-        error_message = format_validation_errors(e)
-        raise ValueError(f"JSON-stat validation failed:\n{error_message}") from None
+        error_message = f"JSON-stat validation failed:\n{format_validation_errors(e)}"
+        raise JSONStatValidationError(error_message) from e
+    else:
+        return True
