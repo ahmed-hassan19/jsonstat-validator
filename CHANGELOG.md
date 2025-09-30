@@ -20,23 +20,6 @@
 
 - Raise an error for duplicate keys in the `index` field when it is a list.
 
-
-### Changed
-
-- Migrated to `src` layout for better package isolation.
-- Refactored `tests/` into a test file per model.
-- Replaced **pip** with **uv** for project management and publishing to **pypi**.
-- Replaced **Black** and **isort** with **Ruff** for linting and formatting.
-
-### Added
-
-- Pre-commit configuration with **Ruff** and **pre-commit** hooks.
-- More tests to achieve near 100% test coverage.
-
-### Fixed
-
-- Raise an error for duplicate keys in the `index` field when it is a list.
-
 ## v0.2.2 (2025-07-20)
 
 ### Changed
