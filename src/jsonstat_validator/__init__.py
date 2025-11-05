@@ -14,6 +14,7 @@ from jsonstat_validator.models.category import Category
 from jsonstat_validator.models.collection import Collection
 from jsonstat_validator.models.dataset import Dataset
 from jsonstat_validator.models.dimension import Dimension
+from jsonstat_validator.models.link import Link
 from jsonstat_validator.models.unit import Unit
 from jsonstat_validator.utils import JSONStatValidationError
 from jsonstat_validator.validator import validate_jsonstat
@@ -33,6 +34,7 @@ __all__ = [
     "JSONStatBaseModel",
     "JSONStatSchema",
     "JSONStatValidationError",
+    "Link",
     "Unit",
     "validate_jsonstat",
 ]
