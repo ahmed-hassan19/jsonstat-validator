@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## v0.3.1 (2025-11-05)
+
+### Added
+- Expose the `Link` model for public import.
+
+
 ## v0.3.0 (2025-09-30)
 
 ### Changed
