@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## v0.4.2 (2025-11-06)
+
+### Change
+- Revert back the `Extension` model into a normal dict.
+
+
 ## v0.4.1 (2025-11-06)
 
 ### Fixed
