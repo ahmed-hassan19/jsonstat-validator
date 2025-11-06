@@ -42,7 +42,7 @@ class Dimension(JSONStatBaseModel):
             "at different levels of the response tree. It is language-dependent."
         ),
     )
-    category: Category = Field(
+    category: Category | None = Field(
         description=(
             "It is used to describe the possible values of a dimension. "
             "It is language-dependent."
@@ -111,6 +111,12 @@ class Dimension(JSONStatBaseModel):
         if self.link and "item" in self.link:
             raise JSONStatValidationError(
                 "Only collections may use 'item' relation in 'link'."
+            )
+        # Validate that category or href is provided
+        if not self.category and not self.href:
+            raise JSONStatValidationError(
+                "A category is required if a reference (href) is not provided. "
+                "For an example, see: https://json-stat.org/full/#href"
             )
         return self
 

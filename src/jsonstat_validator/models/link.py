@@ -3,10 +3,11 @@ from __future__ import annotations
 from enum import Enum
 from typing import Literal
 
-from pydantic import AnyUrl, Field, model_validator
+from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel
-from jsonstat_validator.utils import JSONStatValidationError
+from jsonstat_validator.models.extension import Extension
+from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
 
 
 class Link(JSONStatBaseModel):
@@ -25,7 +26,7 @@ class Link(JSONStatBaseModel):
         ),
     )
     # Required for proper links to external or JSON-stat resources
-    href: AnyUrl = Field(description="It specifies a URL.")
+    href: AnyUrl | None = Field(default=None, description="It specifies a URL.")
     class_: Literal["dataset", "dimension", "collection"] | None = Field(
         default=None,
         alias="class",
@@ -43,11 +44,42 @@ class Link(JSONStatBaseModel):
             "is a JSON-stat resource."
         ),
     )
+    updated: str | None = Field(
+        default=None,
+        description=(
+            "It contains the update time of the linked resource. "
+            "It should be an ISO 8601 date string."
+        ),
+    )
+    extension: Extension | None = Field(
+        default=None,
+        description=(
+            "Extension allows JSON-stat to be extended for particular needs. "
+            "Providers are free to define where they include this property and "
+            "what children are allowed in each case."
+        ),
+    )
+
+    @field_validator("updated", mode="after")
+    @classmethod
+    def validate_updated_date(cls, v: str | None) -> str | None:
+        if v and not is_valid_iso_date(v):
+            raise JSONStatValidationError(
+                f"Updated date: '{v}' is an invalid ISO 8601 format."
+            )
+        return v
+
+    @field_validator("href", mode="before")
+    @classmethod
+    def validate_href(cls, v: str | None) -> str | None:
+        """Convert empty strings to None before URL validation."""
+        if v == "":
+            return None
+        return v
 
     @model_validator(mode="after")
     def validate_link(self) -> Link:
-        # Defensive; keeps error types consistent
-        if self.href is None:
+        if self.href is None and self.class_ is None:
             raise JSONStatValidationError("Link objects must include an 'href'.")
         return self
 

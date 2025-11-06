@@ -1,3 +1,5 @@
+from pydantic import ConfigDict
+
 from jsonstat_validator.models.base import JSONStatBaseModel
 
 
@@ -9,4 +11,4 @@ class Extension(JSONStatBaseModel):
     """
 
     # Free-form dictionary of any properties.
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow", serialize_by_alias=True)
