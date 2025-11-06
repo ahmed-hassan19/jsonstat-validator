@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## v0.4.3 (2025-11-06)
+
+### Fixed
+
+- Use `Annotated` for `class_` field alias to resolve Pydantic v2 warning.
+
+
 ## v0.4.2 (2025-11-06)
 
 ### Change
