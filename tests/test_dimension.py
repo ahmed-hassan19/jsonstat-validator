@@ -40,8 +40,12 @@ class TestDimensionValidCases:
             "version": "2.0",
             "class": "dimension",
             "category": {
-                "index": ["total", "male", "female"],
-                "child": {"male": ["boy"], "female": ["girl"]},
+                "index": ["total", "male", "female", "boy", "girl"],
+                "child": {
+                    "total": ["male", "female"],
+                    "male": ["boy"],
+                    "female": ["girl"],
+                },
             },
         }
         assert validate_jsonstat(dimension) is True

@@ -8,6 +8,24 @@
 - Expose the `Link` model for public import.
 
 
+## v0.3.1 (2025-11-05)
+
+### Changed
+
+- Improved validation logic for the `Dataset` model.
+- Improved validation logic for the `Dimension` model.
+- Improved validation logic for the `Unit` model.
+
+### Added
+
+- Added `Extension` model.
+
+### Fixed
+
+- Changed type of `href` field from `str` to `AnyUrl` in the `Dataset` model.
+- Fixed required `decimals` field in the `Unit` model.
+- Set default value for `position` field in the `Unit` model to `end`.
+
 ## v0.3.0 (2025-09-30)
 
 ### Changed

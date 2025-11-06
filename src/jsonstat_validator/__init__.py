@@ -20,6 +20,7 @@ from jsonstat_validator.utils import JSONStatValidationError
 from jsonstat_validator.validator import validate_jsonstat
 
 # Rebuild models to resolve forward references
+Link.model_rebuild()
 Collection.model_rebuild()
 Dataset.model_rebuild()
 Dimension.model_rebuild()

@@ -5,12 +5,16 @@ from __future__ import annotations
 from collections import Counter
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel, JSONStatSchema
 from jsonstat_validator.models.dimension import DatasetDimension
-from jsonstat_validator.models.link import Link
+from jsonstat_validator.models.extension import Extension
+from jsonstat_validator.models.link import Link, LinkRelationType
 from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
+
+ValueType = list[float | int | str | None] | dict[str, float | int | str | None]
+StatusType = str | list[str] | dict[str, str] | None
 
 
 class DatasetRole(JSONStatBaseModel):
@@ -43,10 +47,23 @@ class DatasetRole(JSONStatBaseModel):
 
     @model_validator(mode="after")
     def validate_dataset_role(self) -> DatasetRole:
-        """Dataset role-wide validation checks."""
+        """Dataset role-wide validation checks.
+
+        - At least one role must be provided.
+        - Each dimension can only be referenced in one role.
+        """
         if not self.time and not self.geo and not self.metric:
-            error_message = "At least one role must be provided."
-            raise JSONStatValidationError(error_message)
+            raise JSONStatValidationError("At least one role must be provided.")
+        if (
+            self.time
+            and self.geo
+            and self.metric
+            and len(set(self.time + self.geo + self.metric))
+            != len(self.time + self.geo + self.metric)
+        ):
+            raise JSONStatValidationError(
+                "Each dimension can only be referenced in one role."
+            )
         return self
 
 
@@ -68,7 +85,7 @@ class Dataset(JSONStatBaseModel):
             "Possible values of class are: dataset, dimension and collection."
         ),
     )
-    href: str | None = Field(
+    href: AnyUrl | None = Field(
         default=None,
         description=(
             "It specifies a URL. Providers can use this property to avoid "
@@ -116,14 +133,14 @@ class Dataset(JSONStatBaseModel):
             "We differ from the specification in that the role is required, not optional"
         ),
     )
-    value: list[float | int | str | None] | dict[str, float | int | str | None] = Field(
+    value: ValueType = Field(
         description=(
             "It contains the data sorted according to the dataset dimensions. "
             "It usually takes the form of an array where missing values are "
             "expressed as nulls."
         ),
     )
-    status: str | list[str] | dict[str, str] | None = Field(
+    status: StatusType = Field(
         default=None,
         description=(
             "It contains metadata at the observation level. When it takes an "
@@ -149,7 +166,7 @@ class Dataset(JSONStatBaseModel):
             "data, use status: https://json-stat.org/full/#status."
         ),
     )
-    extension: dict | None = Field(
+    extension: Extension | None = Field(
         default=None,
         description=(
             "Extension allows JSON-stat to be extended for particular needs. "
@@ -170,9 +187,25 @@ class Dataset(JSONStatBaseModel):
     def validate_updated_date(cls, v: str | None) -> str | None:
         """Validates the updated date is in ISO 8601 format."""
         if v and not is_valid_iso_date(v):
-            error_message = f"Updated date: '{v}' is an invalid ISO 8601 format."
-            raise JSONStatValidationError(error_message)
+            raise JSONStatValidationError(
+                f"Updated date: '{v}' is an invalid ISO 8601 format."
+            )
         return v
+
+    @field_validator("link", mode="before")
+    @classmethod
+    def validate_link_relations(cls, data: dict | str | None) -> dict | str | None:
+        """Validate that additional properties match allowed link relation types."""
+        if not isinstance(data, dict):
+            return data
+
+        allowed_types = {e.value for e in LinkRelationType}
+        invalid_keys = [key for key in data if key not in allowed_types]
+        if invalid_keys:
+            raise JSONStatValidationError(
+                f"Invalid link relation types: {invalid_keys}. Must be one of: {allowed_types}"
+            )
+        return data
 
     @field_validator("role", mode="after")
     @classmethod
@@ -189,39 +222,85 @@ class Dataset(JSONStatBaseModel):
                 item for item, count in Counter(all_values).items() if count > 1
             ]
             if duplicates:
-                error_message = (
-                    f"Dimension(s): {', '.join(duplicates)} referenced in multiple "
-                    "roles. Each dimension can only be referenced in one role."
+                raise JSONStatValidationError(
+                    f"Dimension(s): {', '.join(duplicates)} referenced in multiple roles. Each dimension can only be referenced in one role."
                 )
-                raise JSONStatValidationError(error_message)
         return v
 
     @model_validator(mode="after")
     def validate_dataset(self) -> Dataset:
         """Dataset-wide validation checks."""
-        # Validate size matches id length
-
+        # siez, id: length must match
         if len(self.size) != len(self.id):
-            error_message = (
-                f"Size array length ({len(self.size)}) "
-                f"must match ID array length ({len(self.id)})"
+            raise JSONStatValidationError(
+                f"Size array length ({len(self.size)}) must match ID array length ({len(self.id)})"
             )
-            raise JSONStatValidationError(error_message)
 
-        # Validate status format
+        # size: non-negative
+        if any((s is None) or (s < 0) for s in self.size):
+            raise JSONStatValidationError(
+                "All `size` values must be non-negative integers."
+            )
+        # id: unique
+        if len(set(self.id)) != len(self.id):
+            raise JSONStatValidationError("Dimension IDs in `id` must be unique.")
+
+        # dimension: no missing, no extras
+        missing_dims = [dim_id for dim_id in self.id if dim_id not in self.dimension]
+        if missing_dims:
+            raise JSONStatValidationError(
+                f"Missing dimension definitions: {', '.join(missing_dims)}"
+            )
+
+        extra_dims = [dim_id for dim_id in self.dimension if dim_id not in self.id]
+        if extra_dims:
+            raise JSONStatValidationError(
+                f"Unexpected dimensions not listed in `id`: {', '.join(extra_dims)}"
+            )
+
+        # role membership (if role provided)
+        if self.role:
+            role_dims = []
+            for group in (
+                (self.role.time or []),
+                (self.role.geo or []),
+                (self.role.metric or []),
+            ):
+                role_dims.extend(group)
+            unknown_role_dims = [d for d in role_dims if d not in self.id]
+            if unknown_role_dims:
+                raise JSONStatValidationError(
+                    f"Role references unknown dimensions: {', '.join(unknown_role_dims)}"
+                )
+
+        # status: when array, length must match value length or be single value
         if isinstance(self.status, list) and len(self.status) not in (
             len(self.value),
             1,
         ):
-            error_message = (
-                "Status list must match value length "
-                f"({len(self.value)}) or be single value"
+            raise JSONStatValidationError(
+                f"Status list must match value length ({len(self.value)}) or be single value"
             )
-            raise JSONStatValidationError(error_message)
 
-        # Check all dimensions are defined
-        missing_dims = [dim_id for dim_id in self.id if dim_id not in self.dimension]
-        if missing_dims:
-            error_message = f"Missing dimension definitions: {', '.join(missing_dims)}"
-            raise JSONStatValidationError(error_message)
+        # align size[i] with inline category counts when available
+        for i, dim_id in enumerate(self.id):
+            dim = self.dimension[dim_id]
+            if dim.category:
+                idx = dim.category.index
+                if isinstance(idx, list) or isinstance(idx, dict):  # noqa: SIM101
+                    expected_size = len(idx)
+                elif dim.category.label:
+                    expected_size = 1  # constant dimension
+                else:
+                    expected_size = None
+                if expected_size is not None and self.size[i] != expected_size:
+                    raise JSONStatValidationError(
+                        f"`size[{i}]` for dimension '{dim_id}' must equal number of categories ({expected_size})"
+                    )
+
+        # link: only collections may use 'item' relation
+        if self.link and "item" in self.link:
+            raise JSONStatValidationError(
+                "Only collections may use 'item' relation in 'link'."
+            )
         return self

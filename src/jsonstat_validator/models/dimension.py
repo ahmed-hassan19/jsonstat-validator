@@ -8,7 +8,8 @@ from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel, JSONStatSchema
 from jsonstat_validator.models.category import Category
-from jsonstat_validator.models.link import Link
+from jsonstat_validator.models.extension import Extension
+from jsonstat_validator.models.link import Link, LinkRelationType
 from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
 
 
@@ -86,7 +87,7 @@ class Dimension(JSONStatBaseModel):
             "of the dataset."
         ),
     )
-    extension: dict | None = Field(
+    extension: Extension | None = Field(
         default=None,
         description=(
             "Extension allows JSON-stat to be extended for particular needs. "
@@ -100,9 +101,18 @@ class Dimension(JSONStatBaseModel):
     def validate_updated_date(cls, v: str | None) -> str | None:
         """Validates the updated date is in ISO 8601 format."""
         if v and not is_valid_iso_date(v):
-            error_message = f"Updated date: '{v}' is an invalid ISO 8601 format."
-            raise JSONStatValidationError(error_message)
+            raise JSONStatValidationError(
+                f"Updated date: '{v}' is an invalid ISO 8601 format."
+            )
         return v
+
+    @model_validator(mode="after")
+    def validate_link_relations(self) -> Dimension:
+        if self.link and "item" in self.link:
+            raise JSONStatValidationError(
+                "Only collections may use 'item' relation in 'link'."
+            )
+        return self
 
 
 class DatasetDimension(JSONStatBaseModel):
@@ -129,8 +139,6 @@ class DatasetDimension(JSONStatBaseModel):
             "different validation rules for dataset dimensions."
         ),
         exclude=True,
-        init=False,
-        frozen=True,
     )
     label: str | None = Field(
         default=None,
@@ -185,7 +193,7 @@ class DatasetDimension(JSONStatBaseModel):
             "of the dataset."
         ),
     )
-    extension: dict | None = Field(
+    extension: Extension | None = Field(
         default=None,
         description=(
             "Extension allows JSON-stat to be extended for particular needs. "
@@ -199,17 +207,38 @@ class DatasetDimension(JSONStatBaseModel):
     def validate_updated_date(cls, v: str | None) -> str | None:
         """Validates the updated date is in ISO 8601 format."""
         if v and not is_valid_iso_date(v):
-            error_message = f"Updated date: '{v}' is an invalid ISO 8601 format."
-            raise JSONStatValidationError(error_message)
+            raise JSONStatValidationError(
+                f"Updated date: '{v}' is an invalid ISO 8601 format."
+            )
         return v
+
+    @field_validator("link", mode="before")
+    @classmethod
+    def validate_link_relations(cls, data: dict | str | None) -> dict | str | None:
+        """Validate that additional properties match allowed link relation types."""
+        if not isinstance(data, dict):
+            return data
+
+        allowed_types = {e.value for e in LinkRelationType}
+        invalid_keys = [key for key in data if key not in allowed_types]
+        if invalid_keys:
+            raise JSONStatValidationError(
+                f"Invalid link relation types: {invalid_keys}. Must be one of: {allowed_types}"
+            )
+        return data
 
     @model_validator(mode="after")
     def validate_dataset_dimension(self) -> DatasetDimension:
         """Dataset dimension-wide validation checks."""
         if not self.category and not self.href:
-            error_message = (
-                "A category is required if a reference (href) is not provided."
+            raise JSONStatValidationError(
+                "A category is required if a reference (href) is not provided. "
                 "For an example, see: https://json-stat.org/full/#href"
             )
-            raise JSONStatValidationError(error_message)
+
+        # link: only collections may use 'item' relation
+        if self.link and "item" in self.link:
+            raise JSONStatValidationError(
+                "Only collections may use 'item' relation in 'link'."
+            )
         return self

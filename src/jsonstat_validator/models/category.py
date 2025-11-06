@@ -47,7 +47,7 @@ class Category(JSONStatBaseModel):
             "categories. It is also a way of exposing a certain category as a total."
         ),
     )
-    coordinates: dict[str, list[float]] | None = Field(
+    coordinates: dict[str, list[float | int]] | None = Field(
         default=None,
         description=(
             "It can be used to assign longitude/latitude geographic coordinates "
@@ -75,62 +75,83 @@ class Category(JSONStatBaseModel):
     @model_validator(mode="after")
     def validate_category(self) -> Category:
         """Category-wide validation checks."""
-        # Ensure at least one of index or label fields is provided
+        # index, label: at least one of index or label is required
         if self.index is None and self.label is None:
-            error_message = "At least one of `index` or `label` is required."
-            raise JSONStatValidationError(error_message)
+            raise JSONStatValidationError(
+                "At least one of `index` or `label` is required."
+            )
 
-        # Ensure index and label have the same keys if both are dictionaries
+        # index, label: same keys if both are dictionaries
         if self.index and self.label and isinstance(self.label, dict):
             index_keys = (
                 set(self.index) if isinstance(self.index, list) else set(self.index)
             )
             if index_keys != set(self.label):
-                error_message = "`index` and `label` must have the same keys."
-                raise JSONStatValidationError(error_message)
+                raise JSONStatValidationError(
+                    "`index` and `label` must have the same keys."
+                )
 
-        # Ensure coordinates are a dictionary where keys are category IDs
-        # and values are an array of two numbers (longitude, latitude).
+        # index list: unique IDs
+        if isinstance(self.index, list) and len(set(self.index)) != len(self.index):
+            raise JSONStatValidationError(
+                "Category IDs in `index` list must be unique."
+            )
+
+        # index dict: values must be a permutation of 0..n-1
+        if isinstance(self.index, dict):
+            positions = list(self.index.values())
+            n = len(positions)
+            if set(positions) != set(range(n)):
+                raise JSONStatValidationError(
+                    "`index` mapping values must be a contiguous permutation of 0..n-1."
+                )
+
+        # coordinates: keys must be valid categories
+        # and values must be length-2 lists of numbers (longitude, latitude).
         if self.coordinates:
-            for key in self.coordinates:
-                value = self.coordinates[key]
+            for key, value in self.coordinates.items():
                 if (self.index and key not in self.index) or (
                     self.label and key not in self.label
                 ):
-                    error_message = (
+                    raise JSONStatValidationError(
                         f"Trying to set coordinates for category ID: {key} "
                         "but it is not defined neither in `index` nor in `label`."
                     )
-                    raise JSONStatValidationError(error_message)
-                expected_length = 2
-                if not isinstance(value, list) or len(value) != expected_length:
-                    error_message = (
-                        f"Coordinates for category {key} must be a list of "
-                        f"{expected_length} numbers."
+                if not isinstance(value, list) or len(value) != 2:
+                    raise JSONStatValidationError(
+                        f"Coordinates for category {key} must be a list of 2 numbers: (longitude, latitude)."
                     )
-                    raise JSONStatValidationError(error_message)
 
-        # Ensure child references an existing parent
+        # child: references an existing parent
         if self.child:
-            for parent in self.child:
-                if (self.index and parent not in self.index) or (
-                    self.label and parent not in self.label
-                ):
-                    error_message = (
-                        f"Invalid parent: {parent} in the `child` field. "
-                        "It is not defined neither in `index` nor in `label`."
+            valid_ids = (
+                set(self.index)
+                if isinstance(self.index, list)
+                else set(self.index or [])
+            )
+            valid_ids |= set(self.label or [])
+            for parent, children in self.child.items():
+                if parent not in valid_ids:
+                    raise JSONStatValidationError(
+                        f"Invalid parent: {parent} in the `child` field."
                     )
-                    raise JSONStatValidationError(error_message)
+                for ch in children:
+                    if ch not in valid_ids:
+                        raise JSONStatValidationError(
+                            f"Invalid child: {ch} in `child[{parent}]`."
+                        )
 
-        # Ensure unit references an existing category
+        # unit: keys must exist
         if self.unit:
+            valid_ids = (
+                set(self.index)
+                if isinstance(self.index, list)
+                else set(self.index or [])
+            )
+            valid_ids |= set(self.label or [])
             for key in self.unit:
-                if (self.index and key not in self.index) or (
-                    self.label and key not in self.label
-                ):
-                    error_message = (
-                        f"Invalid unit: {key} in the `unit` field. "
-                        "It is not defined neither in `index` nor in `label`."
+                if key not in valid_ids:
+                    raise JSONStatValidationError(
+                        f"Invalid unit: {key} in the `unit` field."
                     )
-                    raise JSONStatValidationError(error_message)
         return self

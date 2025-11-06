@@ -7,7 +7,8 @@ from typing import Literal
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel, JSONStatSchema
-from jsonstat_validator.models.link import Link
+from jsonstat_validator.models.extension import Extension
+from jsonstat_validator.models.link import Link, LinkRelationType
 from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
 
 
@@ -59,7 +60,7 @@ class Collection(JSONStatBaseModel):
             "data, use status: https://json-stat.org/full/#status."
         ),
     )
-    extension: dict | None = Field(
+    extension: Extension | None = Field(
         default=None,
         description="Extension allows JSON-stat to be extended for particular needs. "
         "Providers are free to define where they include this property and "
@@ -75,11 +76,31 @@ class Collection(JSONStatBaseModel):
             raise JSONStatValidationError(error_message)
         return v
 
+    @field_validator("link", mode="before")
+    @classmethod
+    def validate_link_relations(cls, data: dict | str | None) -> dict | str | None:
+        """Validate that additional properties match allowed link relation types."""
+        if not isinstance(data, dict):
+            return data
+
+        allowed_types = {e.value for e in LinkRelationType}
+        invalid_keys = [key for key in data if key not in allowed_types]
+        if invalid_keys:
+            raise JSONStatValidationError(
+                f"Invalid link relation types: {invalid_keys}. Must be one of: {allowed_types}"
+            )
+        return data
+
     @model_validator(mode="after")
     def validate_collection(self) -> Collection:
-        """Collection-wide validation checks."""
-        # Ensure collection links use correct relation type.
-        if self.link and "item" not in self.link:
-            error_message = "Collection links must use 'item' relation type."
-            raise JSONStatValidationError(error_message)
+        if not self.link:
+            return self
+        if "item" not in self.link:
+            raise JSONStatValidationError(
+                "Collection links must use 'item' relation type."
+            )
+        # Values must be lists
+        for rel, entries in self.link.items():
+            if not isinstance(entries, list):
+                raise JSONStatValidationError(f"Relation '{rel}' must be a list.")
         return self

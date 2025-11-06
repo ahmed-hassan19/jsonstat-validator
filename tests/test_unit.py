@@ -9,7 +9,7 @@ from jsonstat_validator.validator import validate_jsonstat
 class TestUnitValidCases:
     """Test cases for valid Unit objects within dimension categories."""
 
-    def test_unit_with_decimals(self) -> None:
+    def test_unit_with_required_decimals(self) -> None:
         """Test that a unit with decimals validates successfully."""
         dimension = {
             "version": "2.0",
@@ -17,11 +17,12 @@ class TestUnitValidCases:
             "category": {
                 "index": ["gdp"],
                 "unit": {
-                    "gdp": {"decimals": 2},
+                    "gdp": {"symbol": "$"},
                 },
             },
         }
-        assert validate_jsonstat(dimension) is True
+        with pytest.raises(JSONStatValidationError):
+            validate_jsonstat(dimension)
 
     def test_unit_with_symbol(self) -> None:
         """Test that a unit with symbol validates successfully."""
@@ -31,7 +32,7 @@ class TestUnitValidCases:
             "category": {
                 "index": ["gdp"],
                 "unit": {
-                    "gdp": {"symbol": "$"},
+                    "gdp": {"decimals": 2, "symbol": "$"},
                 },
             },
         }
@@ -46,6 +47,7 @@ class TestUnitValidCases:
                 "index": ["gdp"],
                 "unit": {
                     "gdp": {
+                        "decimals": 2,
                         "symbol": "$",
                         "position": "start",
                     },
@@ -63,6 +65,7 @@ class TestUnitValidCases:
                 "index": ["pop"],
                 "unit": {
                     "pop": {
+                        "decimals": 2,
                         "symbol": "people",
                         "position": "end",
                     },

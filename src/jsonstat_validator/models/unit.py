@@ -23,9 +23,8 @@ class Unit(JSONStatBaseModel):
         on their own terms, although it is safer to do it under extension.
     """
 
-    label: str | None = Field(default=None)
-    decimals: int | None = Field(
-        default=None,
+    label: str = Field(default="")
+    decimals: int = Field(
         description=(
             "It contains the number of unit decimals (integer). "
             "If unit is present, decimals is required."
@@ -38,8 +37,8 @@ class Unit(JSONStatBaseModel):
             "when it is displayed (like '€', '$' or '%')."
         ),
     )
-    position: Literal["start", "end"] | None = Field(
-        default=None,
+    position: Literal["start", "end"] = Field(
+        default="end",
         description=(
             "where the unit symbol should be written (before or after the value). "
             "Default is end."
