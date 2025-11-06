@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## v0.4.1 (2025-11-06)
+
+### Fixed
+
+- Handle empty string case in `href`.
+- Update `Link` to support `updated` and `extension`.
+- Update `Extension` model config to allow extra (by overriding base model config).
+
+
 ## v0.4.0 (2025-11-06)
 
 ### Changed
