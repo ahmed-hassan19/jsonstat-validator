@@ -9,7 +9,6 @@ from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel, JSONStatSchema
 from jsonstat_validator.models.dimension import DatasetDimension
-from jsonstat_validator.models.extension import Extension
 from jsonstat_validator.models.link import Link, LinkRelationType
 from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
 
@@ -166,7 +165,7 @@ class Dataset(JSONStatBaseModel):
             "data, use status: https://json-stat.org/full/#status."
         ),
     )
-    extension: Extension | None = Field(
+    extension: dict | None = Field(
         default=None,
         description=(
             "Extension allows JSON-stat to be extended for particular needs. "

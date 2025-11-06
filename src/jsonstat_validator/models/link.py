@@ -6,7 +6,6 @@ from typing import Literal
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
 from jsonstat_validator.models.base import JSONStatBaseModel
-from jsonstat_validator.models.extension import Extension
 from jsonstat_validator.utils import JSONStatValidationError, is_valid_iso_date
 
 
@@ -51,7 +50,7 @@ class Link(JSONStatBaseModel):
             "It should be an ISO 8601 date string."
         ),
     )
-    extension: Extension | None = Field(
+    extension: dict | None = Field(
         default=None,
         description=(
             "Extension allows JSON-stat to be extended for particular needs. "

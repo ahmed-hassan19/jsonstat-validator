@@ -12,7 +12,6 @@ from jsonstat_validator.models.category import Category
 from jsonstat_validator.models.collection import Collection
 from jsonstat_validator.models.dataset import Dataset, DatasetRole
 from jsonstat_validator.models.dimension import DatasetDimension, Dimension
-from jsonstat_validator.models.extension import Extension
 from jsonstat_validator.models.link import Link
 from jsonstat_validator.models.unit import Unit
 
@@ -27,5 +26,4 @@ __all__ = [
     "JSONStatSchema",
     "Link",
     "Unit",
-    "Extension",
 ]
