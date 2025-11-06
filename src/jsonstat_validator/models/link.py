@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
@@ -26,9 +26,11 @@ class Link(JSONStatBaseModel):
     )
     # Required for proper links to external or JSON-stat resources
     href: AnyUrl | None = Field(default=None, description="It specifies a URL.")
-    class_: Literal["dataset", "dimension", "collection"] | None = Field(
+    class_: Annotated[
+        Literal["dataset", "dimension", "collection"] | None,
+        Field(alias="class"),
+    ] = Field(
         default=None,
-        alias="class",
         description=(
             "It describes the class of the resource referenced "
             "in the link. Not required when the resource referenced "

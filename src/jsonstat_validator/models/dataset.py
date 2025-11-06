@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
@@ -76,9 +76,8 @@ class Dataset(JSONStatBaseModel):
             "of this property is to help clients parsing that particular response."
         ),
     )
-    class_: Literal["dataset"] = Field(
+    class_: Annotated[Literal["dataset"], Field(alias="class")] = Field(
         default="dataset",
-        alias="class",
         description=(
             "JSON-stat supports several classes of responses. "
             "Possible values of class are: dataset, dimension and collection."

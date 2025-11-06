@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
@@ -26,9 +26,8 @@ class Dimension(JSONStatBaseModel):
             "of this property is to help clients parsing that particular response."
         ),
     )
-    class_: Literal["dimension"] = Field(
+    class_: Annotated[Literal["dimension"], Field(alias="class")] = Field(
         default="dimension",
-        alias="class",
         description=(
             "JSON-stat supports several classes of responses. "
             "Possible values of class are: dataset, dimension and collection."
@@ -134,16 +133,14 @@ class DatasetDimension(JSONStatBaseModel):
             "of this property is to help clients parsing that particular response."
         ),
     )
-    class_: str | None = Field(
+    class_: Annotated[str | None, Field(alias="class", exclude=True)] = Field(
         default="dataset_dimension",
-        alias="class",
         description=(
             "JSON-stat supports several classes of responses. "
             "Possible values of class are: dataset, dimension and collection. "
             "This is an addition to the standard JSON-stat classes to allow for "
             "different validation rules for dataset dimensions."
         ),
-        exclude=True,
     )
     label: str | None = Field(
         default=None,

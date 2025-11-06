@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
 
@@ -22,9 +22,8 @@ class Collection(JSONStatBaseModel):
         ),
     )
 
-    class_: Literal["collection"] = Field(
+    class_: Annotated[Literal["collection"], Field(alias="class")] = Field(
         default="collection",
-        alias="class",
         description="It declares the class of the response.",
     )
     label: str | None = Field(
