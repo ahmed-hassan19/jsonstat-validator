@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## v0.4.0 (2025-11-06)
+
+### Changed
+
+- Improved validation logic for the `Dataset` model.
+- Improved validation logic for the `Dimension` model.
+- Improved validation logic for the `Unit` model.
+- Improved validation logic for the `Link` model.
+- Modified affected tests in `test_dimension.py` and `test_unit.py` accordingly.
+
+### Added
+
+- Added `Extension` model.
+- Added `link/LinkRelationType` model for link relation types according to [IANA link relation names](https://www.iana.org/assignments/link-relations/link-relations.xhtml).
+
+### Fixed
+
+- Changed type of `href` field from `str` to `AnyUrl` in the `Dataset` model.
+- Fixed required `decimals` field in the `Unit` model.
+- Set default value for `position` field in the `Unit` model to `end`.
+- Fixed validation logic for the `link` field in the `Dataset`, `Dimension` and `Collection` models.
+- Fixed child members not in `index`.
+
+
 ## v0.3.1 (2025-11-05)
 
 ### Added
