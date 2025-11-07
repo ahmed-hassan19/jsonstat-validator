@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## v0.4.4 (2025-11-07)
+
+### Changed
+
+- Loosen the `Category.index`: `index mapping values must be a contiguous permutation of 0..n-1` rule.
+
+
 ## v0.4.3 (2025-11-06)
 
 ### Fixed
