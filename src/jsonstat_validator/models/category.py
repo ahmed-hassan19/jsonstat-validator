@@ -97,15 +97,6 @@ class Category(JSONStatBaseModel):
                 "Category IDs in `index` list must be unique."
             )
 
-        # index dict: values must be a permutation of 0..n-1
-        if isinstance(self.index, dict):
-            positions = list(self.index.values())
-            n = len(positions)
-            if set(positions) != set(range(n)):
-                raise JSONStatValidationError(
-                    "`index` mapping values must be a contiguous permutation of 0..n-1."
-                )
-
         # coordinates: keys must be valid categories
         # and values must be length-2 lists of numbers (longitude, latitude).
         if self.coordinates:
