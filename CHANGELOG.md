@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## v0.4.5 (2025-11-11)
+
+### Fixed:
+- Enable serialization and validation by name along with already enabled by alias.
+
+
 ## v0.4.4 (2025-11-07)
 
 ### Changed

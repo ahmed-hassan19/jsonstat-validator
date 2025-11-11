@@ -26,7 +26,7 @@ Dataset.model_rebuild()
 Dimension.model_rebuild()
 JSONStatSchema.model_rebuild()
 
-__version__ = "0.4.4"
+__version__ = "0.4.5"
 __all__ = [
     "Category",
     "Collection",
