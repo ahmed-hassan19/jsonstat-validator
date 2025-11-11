@@ -76,7 +76,9 @@ class Dataset(JSONStatBaseModel):
             "of this property is to help clients parsing that particular response."
         ),
     )
-    class_: Annotated[Literal["dataset"], Field(alias="class")] = Field(
+    class_: Annotated[
+        Literal["dataset"], Field(alias="class", serialization_alias="class")
+    ] = Field(
         default="dataset",
         description=(
             "JSON-stat supports several classes of responses. "

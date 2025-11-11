@@ -28,7 +28,7 @@ class Link(JSONStatBaseModel):
     href: AnyUrl | None = Field(default=None, description="It specifies a URL.")
     class_: Annotated[
         Literal["dataset", "dimension", "collection"] | None,
-        Field(alias="class"),
+        Field(alias="class", serialization_alias="class"),
     ] = Field(
         default=None,
         description=(

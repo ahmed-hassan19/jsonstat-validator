@@ -22,7 +22,9 @@ class Collection(JSONStatBaseModel):
         ),
     )
 
-    class_: Annotated[Literal["collection"], Field(alias="class")] = Field(
+    class_: Annotated[
+        Literal["collection"], Field(alias="class", serialization_alias="class")
+    ] = Field(
         default="collection",
         description="It declares the class of the response.",
     )

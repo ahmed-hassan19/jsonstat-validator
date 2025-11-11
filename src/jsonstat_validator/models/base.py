@@ -21,7 +21,13 @@ class JSONStatBaseModel(BaseModel):
         """Convert AnyUrl to string, if it exists."""
         return str(href) if href else None
 
-    model_config = ConfigDict(extra="forbid", serialize_by_alias=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        serialize_by_alias=True,
+        serialize_by_name=True,
+        validate_by_alias=True,
+        validate_by_name=True,
+    )
 
 
 class JSONStatSchema(RootModel):

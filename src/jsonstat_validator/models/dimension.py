@@ -26,7 +26,9 @@ class Dimension(JSONStatBaseModel):
             "of this property is to help clients parsing that particular response."
         ),
     )
-    class_: Annotated[Literal["dimension"], Field(alias="class")] = Field(
+    class_: Annotated[
+        Literal["dimension"], Field(alias="class", serialization_alias="class")
+    ] = Field(
         default="dimension",
         description=(
             "JSON-stat supports several classes of responses. "
