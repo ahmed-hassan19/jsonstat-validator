@@ -152,11 +152,10 @@ class TestDatasetClassValues:
             validate_jsonstat(data)
 
     def test_empty_dataset_role_validation(self) -> None:
-        """Test that empty role fails validation."""
+        """Test that empty role passes validation."""
         data = copy.deepcopy(MINIMAL_DATASET)
         data["role"] = {}  # Empty role
-        with pytest.raises(JSONStatValidationError):
-            validate_jsonstat(data)
+        assert validate_jsonstat(data) is True
 
     def test_invalid_updated_date_format(self) -> None:
         """Test that invalid updated date format fails validation."""

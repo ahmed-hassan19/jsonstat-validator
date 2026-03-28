@@ -44,26 +44,6 @@ class DatasetRole(JSONStatBaseModel):
         ),
     )
 
-    @model_validator(mode="after")
-    def validate_dataset_role(self) -> DatasetRole:
-        """Dataset role-wide validation checks.
-
-        - At least one role must be provided.
-        - Each dimension can only be referenced in one role.
-        """
-        if not self.time and not self.geo and not self.metric:
-            raise JSONStatValidationError("At least one role must be provided.")
-        if (
-            self.time
-            and self.geo
-            and self.metric
-            and len(set(self.time + self.geo + self.metric))
-            != len(self.time + self.geo + self.metric)
-        ):
-            raise JSONStatValidationError(
-                "Each dimension can only be referenced in one role."
-            )
-        return self
 
 
 class Dataset(JSONStatBaseModel):
@@ -130,7 +110,6 @@ class Dataset(JSONStatBaseModel):
             "It can be used to assign special roles to dimensions. "
             "At this moment, possible roles are: time, geo and metric. "
             "A role can be shared by several dimensions."
-            "We differ from the specification in that the role is required, not optional"
         ),
     )
     value: ValueType = Field(
