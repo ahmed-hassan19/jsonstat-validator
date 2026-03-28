@@ -45,7 +45,6 @@ class DatasetRole(JSONStatBaseModel):
     )
 
 
-
 class Dataset(JSONStatBaseModel):
     """JSON-stat dataset."""
 
