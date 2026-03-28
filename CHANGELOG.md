@@ -9,6 +9,14 @@
 - Remove "at least one role must be provided" validation from `DatasetRole`. An empty `role` object is now valid.
 - Remove redundant (and buggy) duplicate dimension check from `DatasetRole` validator — the correct check on `Dataset.validate_role` already handles this.
 
+
+## v0.4.6 (2026-03-28)
+
+### Changed
+
+- Remove "at least one role must be provided" validation from `DatasetRole`. An empty `role` object is now valid.
+- Remove redundant (and buggy) duplicate dimension check from `DatasetRole` validator — the correct check on `Dataset.validate_role` already handles this.
+
 ## v0.4.5 (2025-11-11)
 
 ### Fixed:
